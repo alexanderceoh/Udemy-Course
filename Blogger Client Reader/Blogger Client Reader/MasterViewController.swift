@@ -40,6 +40,19 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
                                 let request = NSFetchRequest(entityName: "BlogItems")
                                 request.returnsObjectsAsFaults = false
                                 
+                                do { let results = try context.executeFetchRequest(request)
+                                    
+                                    if results.count > 0 {
+                                        
+                                        for result in results {
+                                            
+                                            context.deleteObject(result as! NSManagedObject)
+                                            
+                                            do { try context.save() } catch {}
+                                           
+                                        }
+                                    }
+                                } catch {}
                                 
                                 // now we are looping through the array to get title and content
                                 
@@ -49,10 +62,12 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
                                         
                                         if let content = item["content"] as? String {
                                             
-                                            print(title)
-                                            print(content)
+                                            // now we are saving the title and content to coredata
                                             
+                                            let newPost = NSEntityDescription.insertNewObjectForEntityForName("BlogItems", inManagedObjectContext: context)
                                             
+                                            newPost.setValue(title, forKey: "title")
+                                            newPost.setValue(content, forKey: "content")
                                             
                                         }
                                         
@@ -76,13 +91,6 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         
         }
         
-        
-        
-        // Do any additional setup after loading the view, typically from a nib.
-        self.navigationItem.leftBarButtonItem = self.editButtonItem()
-
-        let addButton = UIBarButtonItem(barButtonSystemItem: .Add, target: self, action: "insertNewObject:")
-        self.navigationItem.rightBarButtonItem = addButton
         if let split = self.splitViewController {
             let controllers = split.viewControllers
             self.detailViewController = (controllers[controllers.count-1] as! UINavigationController).topViewController as? DetailViewController
@@ -117,7 +125,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     // MARK: - Table View
 
     override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-        return self.fetchedResultsController.sections?.count ?? 0
+        return 1
     }
 
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
